@@ -1,0 +1,126 @@
+
+local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
+
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "ItemHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(260, 280)
+frame.Position = UDim2.new(0.5, -130, 0.5, -140)
+frame.BackgroundColor3 = Color3.fromRGB(20, 30, 55)
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = frame
+
+local function button(name, text, y)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(1, -30, 0, 42)
+    b.Position = UDim2.fromOffset(15, y)
+    b.Text = text
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(30, 130, 220)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Parent = frame
+    Instance.new("UICorner", b)
+    return b
+end
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 0, 40)
+title.Position = UDim2.fromOffset(10, 5)
+title.Text = "🌊 ITEM HUB"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+local close = button("Close", "X", 8)
+close.Size = UDim2.fromOffset(35, 30)
+close.Position = UDim2.new(1, -42, 0, 5)
+close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+
+local carpet = button("Carpet", "🪄 Flying Carpet", 55)
+local water = button("Water", "🌊 Water Bow", 110)
+local dryer = button("Dryer", "💨 Dryer", 165)
+
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(110, 40)
+open.Position = UDim2.fromOffset(15, 100)
+open.Text = "🌊 OPEN HUB"
+open.TextScaled = true
+open.Visible = false
+open.Parent = gui
+
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    open.Visible = false
+end)
+
+water.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local ball = Instance.new("Part")
+    ball.Name = "WaterBall"
+    ball.Shape = Enum.PartType.Ball
+    ball.Size = Vector3.new(35,35,35)
+    ball.Position = root.Position + root.CFrame.LookVector * 35
+    ball.Anchored = true
+    ball.CanCollide = false
+    ball.Material = Enum.Material.Glass
+    ball.Color = Color3.fromRGB(0,170,255)
+    ball.Transparency = 0.3
+    ball.Parent = workspace
+    Debris:AddItem(ball,30)
+end)
+
+carpet.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local old = char:FindFirstChild("FlyingCarpet")
+    if old then old:Destroy() return end
+
+    local seat = Instance.new("Part")
+    seat.Name = "FlyingCarpet"
+    seat.Size = Vector3.new(7,0.3,4)
+    seat.Color = Color3.fromRGB(170,40,220)
+    seat.Position = root.Position - Vector3.new(0,3,0)
+    seat.Parent = char
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = root
+    weld.Part1 = seat
+    weld.Parent = seat
+end)
+
+dryer.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local wind = Instance.new("Part")
+    wind.Shape = Enum.PartType.Ball
+    wind.Size = Vector3.new(12,12,12)
+    wind.Transparency = 0.7
+    wind.Color = Color3.fromRGB(180,220,255)
+    wind.CanCollide = false
+    wind.Anchored = true
+    wind.Position = root.Position + root.CFrame.LookVector * 12
+    wind.Parent = workspace
+    Debris:AddItem(wind,3)
+end)
