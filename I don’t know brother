@@ -1,0 +1,58 @@
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local flying = false
+local speed = 65
+local connection
+
+local function toggleFly()
+    local character = player.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+    if not root or not humanoid then return end
+
+    flying = not flying
+
+    if flying then
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = root
+
+        local velocity = Instance.new("LinearVelocity")
+        velocity.Attachment0 = attachment
+        velocity.MaxForce = math.huge
+        velocity.Parent = root
+
+        connection = RunService.RenderStepped:Connect(function()
+            local camera = workspace.CurrentCamera
+            local direction = Vector3.zero
+
+            if UIS:IsKeyDown(Enum.KeyCode.W) then
+                direction += camera.CFrame.LookVector
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then
+                direction -= camera.CFrame.LookVector
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then
+                direction -= camera.CFrame.RightVector
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then
+                direction += camera.CFrame.RightVector
+            end
+
+            velocity.VectorVelocity = direction * speed
+        end)
+
+        humanoid.PlatformStand = true
+    else
+        if connection then connection:Disconnect() end
+        humanoid.PlatformStand = false
+        root:FindFirstChildOfClass("LinearVelocity"):Destroy()
+        root:FindFirstChildOfClass("Attachment"):Destroy()
+    end
+end
+
+toggleFly()
