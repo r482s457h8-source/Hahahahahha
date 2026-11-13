@@ -1,0 +1,159 @@
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ItemHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(260,280)
+frame.Position = UDim2.new(0.5,-130,0.5,-140)
+frame.BackgroundColor3 = Color3.fromRGB(20,30,55)
+frame.Parent = gui
+
+Instance.new("UICorner",frame).CornerRadius =
+    UDim.new(0,14)
+
+local function button(name,text,y)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(1,-30,0,42)
+    b.Position = UDim2.fromOffset(15,y)
+    b.Text = text
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(30,130,220)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Parent = frame
+    Instance.new("UICorner",b)
+    return b
+end
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-50,0,40)
+title.Position = UDim2.fromOffset(10,5)
+title.Text = "🌈 ITEM HUB"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+local close = button("Close","X",8)
+close.Size = UDim2.fromOffset(35,30)
+close.Position = UDim2.new(1,-42,0,5)
+close.BackgroundColor3 = Color3.fromRGB(200,50,50)
+
+local carpet = button("Carpet","🌈 Flying Carpet",55)
+local water = button("Water","🌊 Water Bow",110)
+local dryer = button("Dryer","💨 Dryer",165)
+
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(110,40)
+open.Position = UDim2.fromOffset(15,100)
+open.Text = "🌊 OPEN HUB"
+open.TextScaled = true
+open.Visible = false
+open.Parent = gui
+
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    open.Visible = false
+end)
+
+-- WATER BOW
+water.MouseButton1Click:Connect(function()
+    local root = player.Character and
+        player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local ball = Instance.new("Part")
+    ball.Name = "WaterBall"
+    ball.Shape = Enum.PartType.Ball
+    ball.Size = Vector3.new(35,35,35)
+    ball.Position = root.Position +
+        root.CFrame.LookVector * 30
+    ball.Anchored = true
+    ball.CanCollide = false
+    ball.Material = Enum.Material.Glass
+    ball.Color = Color3.fromRGB(0,170,255)
+    ball.Transparency = 0.35
+    ball.Parent = workspace
+
+    game:GetService("Debris"):AddItem(ball,30)
+end)
+
+-- FLYING CARPET
+local flying = false
+local flyConnection
+
+carpet.MouseButton1Click:Connect(function()
+    local root = player.Character and
+        player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    flying = not flying
+
+    if flying then
+        local body = Instance.new("BodyVelocity")
+        body.MaxForce = Vector3.new(100000,100000,100000)
+        body.Velocity = Vector3.zero
+        body.Parent = root
+
+        flyConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            if not flying or not root.Parent then return end
+            local camera = workspace.CurrentCamera
+            local direction = camera.CFrame.LookVector
+            body.Velocity = direction * 45
+        end)
+
+        local rug = Instance.new("Part")
+        rug.Name = "RainbowCarpet"
+        rug.Size = Vector3.new(7,0.3,4)
+        rug.Position = root.Position - Vector3.new(0,3,0)
+        rug.Anchored = false
+        rug.CanCollide = false
+        rug.Parent = player.Character
+
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = root
+        weld.Part1 = rug
+        weld.Parent = rug
+
+        carpet.Text = "🛑 Stop Flying"
+    else
+        if flyConnection then flyConnection:Disconnect() end
+        local rug = player.Character:FindFirstChild("RainbowCarpet")
+        if rug then rug:Destroy() end
+        local body = root:FindFirstChildOfClass("BodyVelocity")
+        if body then body:Destroy() end
+        carpet.Text = "🌈 Flying Carpet"
+    end
+end)
+
+-- DRYER
+dryer.MouseButton1Click:Connect(function()
+    local root = player.Character and
+        player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local attachment = Instance.new("Attachment")
+    attachment.Parent = root
+
+    local wind = Instance.new("ParticleEmitter")
+    wind.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+    wind.Rate = 100
+    wind.Speed = NumberRange.new(30,50)
+    wind.Lifetime = NumberRange.new(0.5,1)
+    wind.SpreadAngle = Vector2.new(12,12)
+    wind.Parent = attachment
+
+    task.delay(3,function()
+        attachment:Destroy()
+    end)
+end)
