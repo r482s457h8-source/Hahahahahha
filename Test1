@@ -1,0 +1,105 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local screenGui = script.Parent
+
+-- Hauptfenster (Pink)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "PinkMenu"
+mainFrame.Size = UDim2.new(0, 260, 0, 180)
+mainFrame.Position = UDim2.new(0.5, -130, 0.5, -90)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Kräftiges Pink
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = mainFrame
+
+-- Titelleiste zum Verschieben
+local titleBar = Instance.new("TextLabel")
+titleBar.Size = UDim2.new(1, -40, 0, 35)
+titleBar.Position = UDim2.new(0, 10, 0, 0)
+titleBar.BackgroundTransparency = 1
+titleBar.Text = "✨ Pink Tool Menü ✨"
+titleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleBar.Font = Enum.Font.GothamBold
+titleBar.TextSize = 16
+titleBar.TextXAlignment = Enum.TextXAlignment.Left
+titleBar.Parent = mainFrame
+
+-- X-Button zum Schließen
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 20, 147)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+end)
+
+-- Menü verschiebbar machen (Funktioniert auf PC & Handy)
+local dragging, dragInput, dragStart, startPos
+
+mainFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- Hilfsfunktion für die Tool-Buttons
+local toolEvent = ReplicatedStorage:WaitForChild("GiveToolEvent")
+
+local function createButton(text, posY, toolName)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.85, 0, 0, 45)
+	btn.Position = UDim2.new(0.075, 0, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Helles Rosa
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(80, 0, 40)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 15
+	btn.Parent = mainFrame
+	
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 10)
+	btnCorner.Parent = btn
+	
+	btn.MouseButton1Click:Connect(function()
+		toolEvent:FireServer(toolName)
+	end)
+end
+
+createButton("🌈 Fliegender Teppich", 50, "RainbowCarpet")
+createButton("💨 Super-Föhn", 110, "BlowDryer")
