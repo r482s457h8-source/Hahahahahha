@@ -1,0 +1,85 @@
+
+-- 💗 PINK MM2 DELTA MENU 💗
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PinkMM2"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(270, 260)
+main.Position = UDim2.new(0.5,-135,0.5,-130)
+main.BackgroundColor3 = Color3.fromRGB(255,130,200)
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+
+Instance.new("UICorner",main).CornerRadius = UDim.new(0,18)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-45,0,45)
+title.BackgroundTransparency = 1
+title.Text = "💗 PINK MM2 💗"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 22
+title.Parent = main
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(35,35)
+close.Position = UDim2.new(1,-40,0,5)
+close.Text = "X"
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(210,50,130)
+close.Parent = main
+
+local reopen = Instance.new("TextButton")
+reopen.Size = UDim2.fromOffset(55,55)
+reopen.Position = UDim2.new(0,15,0.5,-27)
+reopen.Text = "💗"
+reopen.TextSize = 28
+reopen.BackgroundColor3 = Color3.fromRGB(255,130,200)
+reopen.Visible = false
+reopen.Parent = gui
+
+local function makeButton(text,y,callback)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1,-30,0,48)
+    b.Position = UDim2.new(0,15,0,y)
+    b.Text = text
+    b.TextSize = 18
+    b.TextColor3 = Color3.new(1,1,1)
+    b.BackgroundColor3 = Color3.fromRGB(235,75,160)
+    b.Parent = main
+    Instance.new("UICorner",b).CornerRadius = UDim.new(0,12)
+    b.MouseButton1Click:Connect(callback)
+    return b
+end
+
+close.MouseButton1Click:Connect(function()
+    main.Visible = false
+    reopen.Visible = true
+end)
+
+reopen.MouseButton1Click:Connect(function()
+    main.Visible = true
+    reopen.Visible = false
+end)
+
+local flying = false
+
+makeButton("🪄 FLIEGENDER TEPPICH",65,function()
+    flying = not flying
+    print("Teppich:",flying)
+end)
+
+makeButton("💨 FÖHN",125,function()
+    print("Föhn ausgewählt!")
+end)
+
+makeButton("✨ PINK EFFECT",185,function()
+    print("Pink Effect aktiviert!")
+end)
