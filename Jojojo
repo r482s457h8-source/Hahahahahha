@@ -1,0 +1,247 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+
+-- Event, über das der Client "X wurde gedrückt" meldet
+local toggleEvent = Instance.new("RemoteEvent")
+toggleEvent.Name = "ToggleMenu"
+toggleEvent.Parent = ReplicatedStorage
+
+---------------------------------------------------------------------
+-- TOOLS
+---------------------------------------------------------------------
+local function newTool(name, color, size)
+	local tool = Instance.new("Tool")
+	tool.Name = name
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = size or Vector3.new(1, 1, 2)
+	handle.Color = color
+	handle.Parent = tool
+	return tool
+end
+
+local function getRoot(tool)
+	local char = tool.Parent
+	return char and char:FindFirstChild("HumanoidRootPart"), char
+end
+
+local builders = {}
+
+-- Fliegender Teppich: Bewegen = fliegen, Leertaste = hoch
+builders["Fliegender Teppich"] = function()
+	local tool = newTool("Fliegender Teppich", Color3.fromRGB(170, 40, 60))
+	local carpet, conn, lv
+
+	local function cleanup()
+		if conn then conn:Disconnect() conn = nil end
+		if carpet then carpet:Destroy() carpet = nil end
+		if lv then lv:Destroy() lv = nil end
+	end
+
+	tool.Equipped:Connect(function()
+		local root, char = getRoot(tool)
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if not root or not hum then return end
+
+		carpet = Instance.new("Part")
+		carpet.Size = Vector3.new(6, 0.3, 8)
+		carpet.Color = Color3.fromRGB(170, 40, 60)
+		carpet.Material = Enum.Material.Fabric
+		carpet.CanCollide = false
+		carpet.CFrame = root.CFrame * CFrame.new(0, -3, 0)
+		carpet.Parent = char
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0, weld.Part1 = carpet, root
+		weld.Parent = carpet
+
+		local att = Instance.new("Attachment", root)
+		lv = Instance.new("LinearVelocity")
+		lv.Attachment0 = att
+		lv.MaxForce = math.huge
+		lv.RelativeTo = Enum.ActuatorRelativeTo.World
+		lv.Parent = root
+
+		conn = RunService.Heartbeat:Connect(function()
+			lv.VectorVelocity = hum.MoveDirection * 60 + Vector3.new(0, hum.Jump and 40 or 0, 0)
+		end)
+	end)
+	tool.Unequipped:Connect(cleanup)
+	tool.Destroying:Connect(cleanup)
+	return tool
+end
+
+-- Rainbow: baut eine Regenbogen-Brücke
+builders["Rainbow"] = function()
+	local tool = newTool("Rainbow", Color3.fromRGB(255, 255, 255))
+	local colors = {
+		Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 127, 0),
+		Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 0),
+		Color3.fromRGB(0, 0, 255), Color3.fromRGB(75, 0, 130),
+		Color3.fromRGB(148, 0, 211),
+	}
+	local cooldown = false
+	tool.Activated:Connect(function()
+		local root = getRoot(tool)
+		if not root or cooldown then return end
+		cooldown = true
+		local pos = root.Position - Vector3.new(0, 3.5, 0)
+		local base = CFrame.new(pos, pos + root.CFrame.LookVector * 10)
+		for i, color in ipairs(colors) do
+			local p = Instance.new("Part")
+			p.Anchored = true
+			p.Size = Vector3.new(1, 0.5, 40)
+			p.Color = color
+			p.Material = Enum.Material.Neon
+			p.CFrame = base * CFrame.new((i - 4) * 1, 0, -22)
+			p.Parent = workspace
+			Debris:AddItem(p, 15)
+		end
+		task.wait(1)
+		cooldown = false
+	end)
+	return tool
+end
+
+-- Föhn: pustet lose Teile weg
+builders["Föhn"] = function()
+	local tool = newTool("Föhn", Color3.fromRGB(255, 120, 200))
+	local cooldown = false
+	tool.Activated:Connect(function()
+		local root, char = getRoot(tool)
+		if not root or cooldown then return end
+		cooldown = true
+		local look = root.CFrame.LookVector
+		local box = root.CFrame * CFrame.new(0, 0, -10)
+		local params = OverlapParams.new()
+		params.FilterDescendantsInstances = { char }
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		for _, part in ipairs(workspace:GetPartBoundsInBox(box, Vector3.new(10, 8, 20), params)) do
+			if not part.Anchored then
+				part:ApplyImpulse(look * part.AssemblyMass * 80)
+			end
+		end
+		task.wait(0.5)
+		cooldown = false
+	end)
+	return tool
+end
+
+-- Water Bow: schießt einen Wasserball
+builders["Water Bow"] = function()
+	local tool = newTool("Water Bow", Color3.fromRGB(40, 140, 255), Vector3.new(0.5, 4, 0.5))
+	local cooldown = false
+	tool.Activated:Connect(function()
+		local root, char = getRoot(tool)
+		if not root or cooldown then return end
+		cooldown = true
+		local ball = Instance.new("Part")
+		ball.Shape = Enum.PartType.Ball
+		ball.Size = Vector3.new(2, 2, 2)
+		ball.Color = Color3.fromRGB(60, 160, 255)
+		ball.Material = Enum.Material.Glass
+		ball.Transparency = 0.3
+		ball.CFrame = root.CFrame * CFrame.new(0, 1, -4)
+		ball.AssemblyLinearVelocity = root.CFrame.LookVector * 120
+		ball.Parent = workspace
+		Debris:AddItem(ball, 5)
+		ball.Touched:Connect(function(hit)
+			if hit:IsDescendantOf(char) then return end
+			local hum = hit.Parent and hit.Parent:FindFirstChildOfClass("Humanoid")
+			if hum then hum:TakeDamage(10) end
+			ball:Destroy()
+		end)
+		task.wait(0.4)
+		cooldown = false
+	end)
+	return tool
+end
+
+local function giveTool(player, toolName)
+	local char = player.Character
+	if not char then return end
+	local old = player.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName)
+	if old then old:Destroy() end
+	builders[toolName]().Parent = player.Backpack
+end
+
+---------------------------------------------------------------------
+-- MENÜ (wird für jeden Spieler auf dem Server erstellt)
+---------------------------------------------------------------------
+local toolList = {
+	{ "Fliegender Teppich", Color3.fromRGB(170, 40, 60) },
+	{ "Rainbow", Color3.fromRGB(150, 80, 200) },
+	{ "Föhn", Color3.fromRGB(230, 100, 180) },
+	{ "Water Bow", Color3.fromRGB(40, 130, 230) },
+}
+
+local menus = {} -- [Player] = Frame
+
+local function createMenu(player)
+	local playerGui = player:WaitForChild("PlayerGui")
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ToolMenu"
+	gui.ResetOnSpawn = false
+
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.fromOffset(240, 300)
+	frame.Position = UDim2.new(0.5, -120, 0.5, -150)
+	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	frame.Visible = false
+	frame.Parent = gui
+	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, 0, 0, 40)
+	title.BackgroundTransparency = 1
+	title.Text = "Tools (X zum Schließen)"
+	title.TextColor3 = Color3.new(1, 1, 1)
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 16
+	title.Parent = frame
+
+	local list = Instance.new("Frame")
+	list.Position = UDim2.fromOffset(15, 50)
+	list.Size = UDim2.new(1, -30, 1, -65)
+	list.BackgroundTransparency = 1
+	list.Parent = frame
+	local layout = Instance.new("UIListLayout", list)
+	layout.Padding = UDim.new(0, 10)
+
+	for _, info in ipairs(toolList) do
+		local button = Instance.new("TextButton")
+		button.Size = UDim2.new(1, 0, 0, 48)
+		button.BackgroundColor3 = info[2]
+		button.Text = info[1]
+		button.TextColor3 = Color3.new(1, 1, 1)
+		button.Font = Enum.Font.GothamBold
+		button.TextSize = 18
+		button.Parent = list
+		Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+		button.Activated:Connect(function()
+			giveTool(player, info[1])
+		end)
+	end
+
+	gui.Parent = playerGui
+	menus[player] = frame
+end
+
+toggleEvent.OnServerEvent:Connect(function(player)
+	local frame = menus[player]
+	if frame then
+		frame.Visible = not frame.Visible
+	end
+end)
+
+Players.PlayerAdded:Connect(createMenu)
+for _, player in ipairs(Players:GetPlayers()) do
+	task.spawn(createMenu, player)
+end
+
+Players.PlayerRemoving:Connect(function(player)
+	menus[player] = nil
+end)
