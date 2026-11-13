@@ -1,0 +1,257 @@
+--[[ 
+    ULTI-MASTER-SKRIPT für ServerScriptService:
+    Erstellt automatisch die Tools im ReplicatedStorage und das GUI beim Spieler!
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+--------------------------------------------------
+-- TEIL 1: Tools im ReplicatedStorage erstellen
+--------------------------------------------------
+local function createTools()
+	-- 1. WasserBogen
+	if not ReplicatedStorage:FindFirstChild("WasserBogen") then
+		local waterTool = Instance.new("Tool")
+		waterTool.Name = "WasserBogen"
+		
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(1, 1, 3)
+		handle.BrickColor = BrickColor.new("Bright blue")
+		handle.Parent = waterTool
+		
+		local scriptPart = Instance.new("Script")
+		scriptPart.Source = [[
+			local tool = script.Parent
+			local debounce = false
+			tool.Activated:Connect(function()
+				if debounce then return end
+				debounce = true
+				local character = tool.Parent
+				local hrp = character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					local waterSphere = Instance.new("Part")
+					waterSphere.Shape = Enum.PartType.Ball
+					waterSphere.Size = Vector3.new(6, 6, 6)
+					waterSphere.BrickColor = BrickColor.new("Bright blue")
+					waterSphere.Material = Enum.Material.Glass
+					waterSphere.Transparency = 0.3
+					waterSphere.CanCollide = true
+					waterSphere.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 8)
+					waterSphere.Parent = workspace
+					game:GetService("Debris"):AddItem(waterSphere, 5)
+				end
+				task.wait(1)
+				debounce = false
+			end)
+		]]
+		scriptPart.Parent = waterTool
+		waterTool.Parent = ReplicatedStorage
+	end
+
+	-- 2. FliegenderTeppich
+	if not ReplicatedStorage:FindFirstChild("FliegenderTeppich") then
+		local carpetTool = Instance.new("Tool")
+		carpetTool.Name = "FliegenderTeppich"
+		
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(4, 0.2, 6)
+		handle.BrickColor = BrickColor.new("Deep orange")
+		handle.Parent = carpetTool
+		
+		local scriptPart = Instance.new("Script")
+		scriptPart.Source = [[
+			local tool = script.Parent
+			local debounce = false
+			tool.Activated:Connect(function()
+				local character = tool.Parent
+				local hrp = character:FindFirstChild("HumanoidRootPart")
+				if hrp and not debounce then
+					debounce = true
+					local carpet = Instance.new("Part")
+					carpet.Size = Vector3.new(4, 0.2, 6)
+					carpet.BrickColor = BrickColor.new("Deep orange")
+					carpet.Material = Enum.Material.Fabric
+					carpet.Position = hrp.Position - Vector3.new(0, 3, 0)
+					carpet.Parent = workspace
+					
+					local weld = Instance.new("WeldConstraint")
+					weld.Part0 = carpet
+					weld.Part1 = hrp
+					weld.Parent = carpet
+					
+					local bv = Instance.new("BodyVelocity")
+					bv.Velocity = Vector3.new(0, 15, 0)
+					bv.MaxForce = Vector3.new(0, math.huge, 0)
+					bv.Parent = carpet
+					
+					task.wait(5)
+					carpet:Destroy()
+					debounce = false
+				end
+			end)
+		]]
+		scriptPart.Parent = carpetTool
+		carpetTool.Parent = ReplicatedStorage
+	end
+
+	-- 3. Dryer
+	if not ReplicatedStorage:FindFirstChild("Dryer") then
+		local dryerTool = Instance.new("Tool")
+		dryerTool.Name = "Dryer"
+		
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(1, 2, 1)
+		handle.BrickColor = BrickColor.new("Light stone grey")
+		handle.Parent = dryerTool
+		
+		local scriptPart = Instance.new("Script")
+		scriptPart.Source = [[
+			local tool = script.Parent
+			tool.Activated:Connect(function()
+				local character = tool.Parent
+				local hrp = character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					local wind = Instance.new("Part")
+					wind.Size = Vector3.new(5, 5, 8)
+					wind.Transparency = 1
+					wind.CanCollide = false
+					wind.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 5)
+					wind.Parent = workspace
+					
+					wind.Touched:Connect(function(hit)
+						local enemyChar = hit.Parent
+						if enemyChar and enemyChar ~= character then
+							local enemyHum = enemyChar:FindFirstChild("Humanoid")
+							local enemyRoot = enemyChar:FindFirstChild("HumanoidRootPart")
+							if enemyHum and enemyRoot then
+								enemyRoot.Velocity = (hrp.CFrame.LookVector * 70) + Vector3.new(0, 30, 0)
+							end
+						end
+					end)
+					game:GetService("Debris"):AddItem(wind, 0.3)
+				end
+			end)
+		]]
+		scriptPart.Parent = dryerTool
+		dryerTool.Parent = ReplicatedStorage
+	end
+end
+
+createTools()
+
+--------------------------------------------------
+-- TEIL 2: Menü (GUI) automatisch bei Spielern hinzufügen
+--------------------------------------------------
+Players.PlayerAdded:Connect(function(player)
+	local playerGui = player:WaitForChild("PlayerGui")
+	
+	if playerGui:FindFirstChild("ToolMenu") then return end
+	
+	-- ScreenGui
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ToolMenu"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
+	
+	-- Toggle-Button (Menü Auf/Zu)
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Name = "ToggleBtn"
+	toggleBtn.Size = UDim2.new(0, 130, 0, 40)
+	toggleBtn.Position = UDim2.new(0, 20, 0, 20)
+	toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleBtn.TextSize = 16
+	toggleBtn.Font = Enum.Font.SourceSansBold
+	toggleBtn.Text = "Menü schließen"
+	toggleBtn.Parent = screenGui
+	
+	local toggleCorner = Instance.new("UICorner")
+	toggleCorner.CornerRadius = UDim.new(0, 8)
+	toggleCorner.Parent = toggleBtn
+	
+	-- Hauptmenü (Frame)
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = UDim2.new(0, 220, 0, 210)
+	mainFrame.Position = UDim2.new(0, 20, 0, 75)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Parent = screenGui
+	
+	local frameCorner = Instance.new("UICorner")
+	frameCorner.CornerRadius = UDim.new(0, 12)
+	frameCorner.Parent = mainFrame
+	
+	-- UI Layout für Buttons im Frame
+	local uiList = Instance.new("UIListLayout")
+	uiList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	uiList.VerticalAlignment = Enum.VerticalAlignment.Center
+	uiList.SortOrder = Enum.SortOrder.LayoutOrder
+	uiList.Padding = UDim.new(0, 10)
+	uiList.Parent = mainFrame
+	
+	-- Hilfsfunktion um Buttons zu erstellen
+	local function createButton(name, text, order)
+		local btn = Instance.new("TextButton")
+		btn.Name = name
+		btn.Size = UDim2.new(0, 180, 0, 45)
+		btn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.TextSize = 16
+		btn.Font = Enum.Font.SourceSansBold
+		btn.Text = text
+		btn.LayoutOrder = order
+		btn.Parent = mainFrame
+		
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = btn
+		return btn
+	end
+	
+	local waterBtn = createButton("WaterBtn", "Wasserbogen", 1)
+	local carpetBtn = createButton("CarpetBtn", "Fliegender Teppich", 2)
+	local dryerBtn = createButton("DryerBtn", "Dryer", 3)
+	
+	-- Client-Skript für die Funktionalität des Menüs (als LocalScript erzeugt)
+	local clientScript = Instance.new("LocalScript")
+	clientScript.Source = [[
+		local p = game.Players.LocalPlayer
+		local gui = script.Parent
+		local frame = gui:WaitForChild("MainFrame")
+		local tBtn = gui:WaitForChild("ToggleBtn")
+		
+		local isOpen = true
+		tBtn.MouseButton1Click:Connect(function()
+			isOpen = not isOpen
+			frame.Visible = isOpen
+			tBtn.Text = isOpen and "Menü schließen" or "Menü öffnen"
+		end)
+		
+		local function requestTool(toolName)
+			local bp = p:FindFirstChild("Backpack")
+			local char = p.Character
+			if bp and not bp:FindFirstChild(toolName) and (not char or not char:FindFirstChild(toolName)) then
+				local template = game:GetService("ReplicatedStorage"):FindFirstChild(toolName)
+				if template then
+					template:Clone().Parent = bp
+				end
+			end
+		end
+		
+		frame:WaitForChild("WaterBtn").MouseButton1Click:Connect(function()
+			requestTool("WasserBogen")
+		end)
+		frame:WaitForChild("CarpetBtn").MouseButton1Click:Connect(function()
+			requestTool("FliegenderTeppich")
+		end)
+		frame:WaitForChild("DryerBtn").MouseButton1Click:Connect(function()
+			requestTool("Dryer")
+		end)
+	]]
+	clientScript.Parent = screenGui
+end)
