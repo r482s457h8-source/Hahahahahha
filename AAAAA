@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Kuromi MM2 🎀</title>
+
+<style>
+
+* { box-sizing: border-box; }
+
+body {
+
+  background: linear-gradient(135deg,#dcb5ff,#f5c5ed);
+
+  font-family: Arial;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  min-height: 100vh;
+
+  margin: 0;
+
+}
+
+.menu {
+
+  width: 310px;
+
+  padding: 15px;
+
+  background: #261438;
+
+  border: 2px solid #ffa0dc;
+
+  border-radius: 22px;
+
+  text-align: center;
+
+  box-shadow: 0 10px 30px #75408d;
+
+}
+
+h2 {
+
+  color: #ffa0dc;
+
+}
+
+.close {
+
+  float: right;
+
+  background: #873bc1;
+
+  color: white;
+
+  border: none;
+
+  padding: 10px 14px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+}
+
+img {
+
+  width: 100%;
+
+  border-radius: 15px;
+
+}
+
+p {
+
+  color: #e5caff;
+
+}
+
+.tool {
+
+  display: block;
+
+  width: 100%;
+
+  padding: 15px;
+
+  margin: 10px 0;
+
+  border: none;
+
+  border-radius: 13px;
+
+  background: #873bc1;
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+}
+
+.tool:hover {
+
+  background: #b76bdf;
+
+}
+
+#open {
+
+  display: none;
+
+  position: fixed;
+
+  left: 15px;
+
+  top: 50%;
+
+  background: #873bc1;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 12px;
+
+  padding: 14px;
+
+  cursor: pointer;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="menu" id="menu">
+
+<button class="close" onclick="closeMenu()">X</button>
+
+<h2>🎀 KUROMI MM2 🎀</h2>
+
+<img src="kuromi.jpg" alt="Kuromi">
+
+<p>♡ Welcome to my Kuromi Menu ♡</p>
+
+<button class="tool" onclick="selectTool('Rainbow Carpet')">
+
+🌈 Rainbow Carpet
+
+</button>
+
+<button class="tool" onclick="selectTool('Blow Dry')">
+
+💨 Blow Dry
+
+</button>
+
+<button class="tool" onclick="selectTool('Water Bow')">
+
+💧 Water Bow
+
+</button>
+
+<p id="status">💜 Choose your tool!</p>
+
+</div>
+
+<button id="open" onclick="openMenu()">
+
+💜 KUROMI
+
+</button>
+
+<script>
+
+function closeMenu() {
+
+  document.getElementById("menu").style.display = "none";
+
+  document.getElementById("open").style.display = "block";
+
+}
+
+function openMenu() {
+
+  document.getElementById("menu").style.display = "block";
+
+  document.getElementById("open").style.display = "none";
+
+}
+
+function selectTool(name) {
+
+  document.getElementById("status").innerText =
+
+    name + " selected! 🎀";
+
+}
+
+</script>
+
+</body>
+
+</html>
