@@ -1,0 +1,185 @@
+
+-- RAINBOW POWERS - SERVER
+-- Put inside ServerScriptService
+
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local remote = Instance.new("RemoteEvent")
+remote.Name = "RainbowPowersEvent"
+remote.Parent = RS
+
+local balls = {}
+local carpets = {}
+
+local function waterBall(player, position)
+    local ball = Instance.new("Part")
+    ball.Name = "SwimmableWaterBall"
+    ball.Shape = Enum.PartType.Ball
+    ball.Size = Vector3.new(26,26,26)
+    ball.Position = position
+    ball.Anchored = true
+    ball.CanCollide = false
+    ball.Transparency = 0.45
+    ball.Material = Enum.Material.Glass
+    ball.Color = Color3.fromRGB(0,180,255)
+    ball.Parent = workspace
+
+    table.insert(balls, ball)
+
+    task.delay(30, function()
+        if ball.Parent then ball:Destroy() end
+    end)
+end
+
+local function dryer(player)
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    for _, target in ipairs(Players:GetPlayers()) do
+        if target ~= player and target.Character then
+            local other = target.Character:FindFirstChild("HumanoidRootPart")
+            local hum = target.Character:FindFirstChildOfClass("Humanoid")
+
+            if other and hum and hum.Health > 0 then
+                local offset = other.Position - root.Position
+                local distance = offset.Magnitude
+
+                if distance < 35 and distance > 0 then
+                    if root.CFrame.LookVector:Dot(offset.Unit) > 0.4 then
+                        other:ApplyImpulse(
+                            (offset.Unit * 100 + Vector3.new(0,45,0))
+                            * other.AssemblyMass
+                        )
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function carpet(player, enabled)
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    if not enabled then
+        if carpets[player] then
+            carpets[player].part:Destroy()
+            carpets[player] = nil
+        end
+        return
+    end
+
+    if carpets[player] then return end
+
+    local part = Instance.new("Part")
+    part.Name = "RainbowCarpet"
+    part.Size = Vector3.new(8,0.4,5)
+    part.Material = Enum.Material.Neon
+    part.Color = Color3.fromRGB(180,0,255)
+    part.CanCollide = false
+    part.Massless = true
+    part.CFrame = root.CFrame * CFrame.new(0,-3,0)
+    part.Parent = workspace
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = part
+    weld.Part1 = root
+    weld.Parent = part
+
+    carpets[player] = {
+        part = part,
+        direction = Vector3.zero,
+        height = 0
+    }
+end
+
+remote.OnServerEvent:Connect(function(player, action, value)
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    if action == "Water" then
+        local direction = root.CFrame.LookVector
+        local projectile = Instance.new("Part")
+        projectile.Shape = Enum.PartType.Ball
+        projectile.Size = Vector3.new(2,2,2)
+        projectile.Material = Enum.Material.Neon
+        projectile.Color = Color3.fromRGB(0,200,255)
+        projectile.CanCollide = false
+        projectile.Position = root.Position + direction * 4
+        projectile.Parent = workspace
+        projectile.AssemblyLinearVelocity = direction * 100
+
+        local hit = false
+        projectile.Touched:Connect(function()
+            if hit then return end
+            hit = true
+            local pos = projectile.Position
+            projectile:Destroy()
+            waterBall(player, pos)
+        end)
+
+        task.delay(4, function()
+            if projectile.Parent then
+                local pos = projectile.Position
+                projectile:Destroy()
+                waterBall(player, pos)
+            end
+        end)
+
+    elseif action == "Dryer" then
+        dryer(player)
+
+    elseif action == "Carpet" then
+        carpet(player, value == true)
+
+    elseif action == "CarpetMove" then
+        local data = carpets[player]
+        if data and typeof(value) == "Vector3" then
+            data.direction = Vector3.new(
+                math.clamp(value.X,-1,1),
+                math.clamp(value.Y,-1,1),
+                math.clamp(value.Z,-1,1)
+            )
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    for player, data in pairs(carpets) do
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+
+        if root and data.part.Parent then
+            root.AssemblyLinearVelocity = data.direction * 55
+        end
+    end
+
+    -- Buoyancy inside water balls
+    for _, ball in ipairs(balls) do
+        if ball.Parent then
+            for _, player in ipairs(Players:GetPlayers()) do
+                local char = player.Character
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+
+                if root and (root.Position-ball.Position).Magnitude < 12 then
+                    if root.Position.Y < ball.Position.Y + 9 then
+                        root.AssemblyLinearVelocity +=
+                            Vector3.new(0, 1.5, 0)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if carpets[player] then
+        carpets[player].part:Destroy()
+        carpets[player] = nil
+    end
+end)
