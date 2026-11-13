@@ -1,0 +1,187 @@
+Ja. **Ein einzelnes LocalScript** kann das Menü erstellen, verschiebbar machen und mit **X** schließen. Für dieses einfache Beispiel müssen die vier `Tool`-Objekte in `ReplicatedStorage > EquipTools` liegen und genau `FlyingCarpet`, `Water`, `Bow` und `Dryer` heißen.
+
+> Hinweis: Das Script rüstet die Tools clientseitig aus – gut zum Testen im eigenen Spiel. Für ein Multiplayer-Spiel, in dem das Ausrüsten serverseitig zuverlässig und sicher sein soll, brauchst du zusätzlich ein Server-Script.
+
+Lege das hier als **LocalScript** in `StarterPlayer > StarterPlayerScripts` ab:
+
+```lua name=EquipMenu.client.lua
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local toolFolder = ReplicatedStorage:WaitForChild("EquipTools")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "EquipMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Name = "Menu"
+frame.Size = UDim2.fromOffset(220, 250)
+frame.Position = UDim2.new(0, 30, 0.5, -125)
+frame.BackgroundColor3 = Color3.fromRGB(35, 38, 48)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = frame
+
+-- Kopfzeile dient als Ziehfläche
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 42)
+titleBar.BackgroundColor3 = Color3.fromRGB(50, 55, 70)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = frame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 1, 0)
+title.Position = UDim2.fromOffset(12, 0)
+title.BackgroundTransparency = 1
+title.Text = "Ausrüstung"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.fromOffset(36, 32)
+closeButton.Position = UDim2.new(1, -40, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(190, 65, 65)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextSize = 18
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 7)
+closeCorner.Parent = closeButton
+
+closeButton.Activated:Connect(function()
+	gui:Destroy()
+end)
+
+local list = Instance.new("Frame")
+list.Size = UDim2.new(1, -20, 1, -55)
+list.Position = UDim2.fromOffset(10, 48)
+list.BackgroundTransparency = 1
+list.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 7)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = list
+
+local function equipTool(toolName)
+	local template = toolFolder:FindFirstChild(toolName)
+	if not template or not template:IsA("Tool") then
+		warn("Tool fehlt oder ist kein Tool:", toolName)
+		return
+	end
+
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if not backpack then
+		return
+	end
+
+	-- Entfernt vorherige Tools aus diesem Menü
+	for _, container in ipairs({backpack, player.Character}) do
+		if container then
+			for _, item in ipairs(container:GetChildren()) do
+				if item:IsA("Tool")
+					and (item.Name == "FlyingCarpet"
+						or item.Name == "Water"
+						or item.Name == "Bow"
+						or item.Name == "Dryer") then
+					item:Destroy()
+				end
+			end
+		end
+	end
+
+	local tool = template:Clone()
+	tool.Parent = backpack
+
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid:EquipTool(tool)
+	end
+end
+
+local items = {
+	{label = "Flying Carpet", tool = "FlyingCarpet"},
+	{label = "Water", tool = "Water"},
+	{label = "Bow", tool = "Bow"},
+	{label = "Dryer", tool = "Dryer"},
+}
+
+for index, item in ipairs(items) do
+	local button = Instance.new("TextButton")
+	button.Name = item.tool .. "Button"
+	button.Size = UDim2.new(1, 0, 0, 38)
+	button.BackgroundColor3 = Color3.fromRGB(75, 110, 180)
+	button.Text = item.label
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextSize = 16
+	button.Font = Enum.Font.Gotham
+	button.LayoutOrder = index
+	button.Parent = list
+
+	local buttonCorner = Instance.new("UICorner")
+	buttonCorner.CornerRadius = UDim.new(0, 7)
+	buttonCorner.Parent = button
+
+	button.Activated:Connect(function()
+		equipTool(item.tool)
+	end)
+end
+
+-- Ziehen mit Maus oder Touch über die Kopfzeile
+local dragging = false
+local dragInput
+local dragStart
+local startPosition
+
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPosition = frame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input == dragInput then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
+```
