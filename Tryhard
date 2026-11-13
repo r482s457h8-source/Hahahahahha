@@ -1,0 +1,145 @@
+
+local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ItemHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(260, 260)
+frame.Position = UDim2.new(0.5,-130,0.5,-130)
+frame.BackgroundColor3 = Color3.fromRGB(20,25,50)
+frame.Parent = gui
+
+Instance.new("UICorner",frame).CornerRadius = UDim.new(0,15)
+
+local function makeButton(name,text,y)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(1,-30,0,45)
+    b.Position = UDim2.fromOffset(15,y)
+    b.Text = text
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(35,110,220)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Parent = frame
+    Instance.new("UICorner",b)
+    return b
+end
+
+local title = makeButton("Title","🌈 ITEM HUB",5)
+title.BackgroundColor3 = Color3.fromRGB(100,40,180)
+
+local close = makeButton("Close","X",5)
+close.Size = UDim2.fromOffset(35,35)
+close.Position = UDim2.new(1,-40,0,5)
+close.BackgroundColor3 = Color3.fromRGB(200,40,40)
+
+local carpet = makeButton("Carpet","🌈 Flying Carpet",60)
+local dryer = makeButton("Dryer","💨 Dryer",115)
+local water = makeButton("WaterBow","🌊 Water Bow",170)
+
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(120,40)
+open.Position = UDim2.fromOffset(15,100)
+open.Text = "OPEN HUB"
+open.Visible = false
+open.Parent = gui
+
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    open.Visible = false
+end)
+
+-- WATER BOW: real terrain water
+local waterActive = false
+
+water.MouseButton1Click:Connect(function()
+    local root = player.Character and
+        player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local position = root.Position + root.CFrame.LookVector * 30
+
+    workspace.Terrain:FillBall(
+        position,
+        18,
+        Enum.Material.Water
+    )
+
+    task.delay(30,function()
+        workspace.Terrain:FillBall(
+            position,
+            18,
+            Enum.Material.Air
+        )
+    end)
+end)
+
+-- FLYING CARPET
+local flying = false
+local velocity, gyro
+
+carpet.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    flying = not flying
+
+    if flying then
+        velocity = Instance.new("BodyVelocity")
+        velocity.MaxForce = Vector3.new(1e6,1e6,1e6)
+        velocity.Velocity = Vector3.new(0,0,0)
+        velocity.Parent = root
+
+        gyro = Instance.new("BodyGyro")
+        gyro.MaxTorque = Vector3.new(1e6,1e6,1e6)
+        gyro.Parent = root
+
+        local carpetPart = Instance.new("Part")
+        carpetPart.Name = "RainbowCarpet"
+        carpetPart.Size = Vector3.new(7,0.3,4)
+        carpetPart.Position = root.Position - Vector3.new(0,3,0)
+        carpetPart.Color = Color3.fromRGB(150,50,255)
+        carpetPart.Parent = char
+
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = root
+        weld.Part1 = carpetPart
+        weld.Parent = carpetPart
+    else
+        if velocity then velocity:Destroy() end
+        if gyro then gyro:Destroy() end
+        local p = char:FindFirstChild("RainbowCarpet")
+        if p then p:Destroy() end
+    end
+end)
+
+-- DRYER
+dryer.MouseButton1Click:Connect(function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local wind = Instance.new("Part")
+    wind.Shape = Enum.PartType.Ball
+    wind.Size = Vector3.new(8,8,8)
+    wind.Material = Enum.Material.Neon
+    wind.Color = Color3.fromRGB(180,220,255)
+    wind.Transparency = 0.65
+    wind.Anchored = true
+    wind.CanCollide = false
+    wind.Position = root.Position + root.CFrame.LookVector * 8
+    wind.Parent = workspace
+
+    Debris:AddItem(wind,3)
+end)
