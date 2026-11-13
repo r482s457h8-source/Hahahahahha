@@ -1,0 +1,112 @@
+
+-- 🌈 RAINBOW SUPER MENU
+-- Client-side visual demo
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local old = game.CoreGui:FindFirstChild("RainbowSuperMenu")
+if old then old:Destroy() end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RainbowSuperMenu"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(270,330)
+frame.Position = UDim2.new(0.5,-135,0.5,-165)
+frame.BackgroundColor3 = Color3.fromRGB(35,15,65)
+frame.Parent = gui
+
+Instance.new("UICorner",frame).CornerRadius =
+    UDim.new(0,18)
+
+local stroke = Instance.new("UIStroke",frame)
+stroke.Color = Color3.fromRGB(255,80,220)
+stroke.Thickness = 3
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-40,0,50)
+title.Position = UDim2.fromOffset(10,5)
+title.BackgroundTransparency = 1
+title.Text = "🌈 SUPER POWERS"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(30,30)
+close.Position = UDim2.new(1,-35,0,5)
+close.Text = "X"
+close.Parent = frame
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local function makeButton(name,y,callback)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1,-30,0,48)
+    b.Position = UDim2.fromOffset(15,y)
+    b.BackgroundColor3 = Color3.fromRGB(135,65,220)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.TextScaled = true
+    b.Text = name
+    b.Parent = frame
+    Instance.new("UICorner",b).CornerRadius =
+        UDim.new(0,12)
+    b.MouseButton1Click:Connect(callback)
+end
+
+-- Wasserkugel
+makeButton("🫧 Big Water Ball",65,function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local ball = Instance.new("Part")
+    ball.Name = "WaterBall"
+    ball.Shape = Enum.PartType.Ball
+    ball.Size = Vector3.new(24,24,24)
+    ball.Position = root.Position
+    ball.Anchored = true
+    ball.CanCollide = false
+    ball.Transparency = 0.55
+    ball.Material = Enum.Material.Glass
+    ball.Color = Color3.fromRGB(0,180,255)
+    ball.Parent = workspace
+
+    local light = Instance.new("PointLight",ball)
+    light.Color = Color3.fromRGB(0,180,255)
+    light.Brightness = 2
+    light.Range = 20
+
+    task.delay(20,function()
+        if ball then ball:Destroy() end
+    end)
+end)
+
+-- Rainbow-Effekt
+makeButton("🌈 Rainbow Effect",120,function()
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local sparkles = Instance.new("Sparkles")
+    sparkles.SparkleColor = Color3.fromRGB(255,0,255)
+    sparkles.Parent = root
+end)
+
+makeButton("🌊 Water Bow",175,function()
+    print("Water Bow: Original Gear benötigt")
+end)
+
+makeButton("🌈 Flying Carpet",230,function()
+    print("Original Rainbow Magic Carpet benötigt")
+end)
+
+makeButton("💨 Hair Dryer",285,function()
+    print("Original Hair Dryer benötigt")
+end)
+
+print("Rainbow Super Menu loaded!")
