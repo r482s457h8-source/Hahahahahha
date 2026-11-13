@@ -1,0 +1,133 @@
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RainbowCarpetMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 240)
+frame.Position = UDim2.new(0.5, -130, 0.5, -120)
+frame.BackgroundColor3 = Color3.fromRGB(35, 20, 70)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius =
+    UDim.new(0, 15)
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 3
+stroke.Color = Color3.fromRGB(255, 0, 200)
+stroke.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -45, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "🌈 RAINBOW MENU"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 40, 0, 40)
+close.Position = UDim2.new(1, -42, 0, 2)
+close.Text = "X"
+close.TextSize = 22
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(220, 40, 70)
+close.Parent = frame
+
+Instance.new("UICorner", close)
+
+close.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+-- Drag menu
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and
+        (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- Buttons
+local function makeButton(name, y, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 220, 0, 42)
+    button.Position = UDim2.new(0, 20, 0, y)
+    button.BackgroundColor3 = Color3.fromRGB(120, 40, 200)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextSize = 16
+    button.Font = Enum.Font.GothamBold
+    button.Text = name
+    button.Parent = frame
+
+    Instance.new("UICorner", button)
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+makeButton("🌈 Spawn Carpet", 60, function()
+    gui:SetAttribute("SpawnCarpetRequested", true)
+    print("Connect this button to your carpet spawner!")
+end)
+
+makeButton("🪽 Fly", 110, function()
+    print("Connect this button to your flight system!")
+end)
+
+makeButton("🗑️ Remove Carpet", 160, function()
+    local carpet = workspace:FindFirstChild("RainbowCarpet")
+    if carpet then
+        carpet:Destroy()
+    end
+end)
+
+-- Reopen button
+local reopen = Instance.new("TextButton")
+reopen.Size = UDim2.new(0, 110, 0, 40)
+reopen.Position = UDim2.new(0, 15, 0.5, 0)
+reopen.Text = "🌈 MENU"
+reopen.TextSize = 17
+reopen.BackgroundColor3 = Color3.fromRGB(120, 40, 200)
+reopen.TextColor3 = Color3.new(1,1,1)
+reopen.Parent = gui
+Instance.new("UICorner", reopen)
+
+reopen.MouseButton1Click:Connect(function()
+    gui.Enabled = true
+    frame.Visible = true
+end)
