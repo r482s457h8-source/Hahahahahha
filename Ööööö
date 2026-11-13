@@ -1,0 +1,61 @@
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RainbowMM2Menu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(260, 320)
+frame.Position = UDim2.new(0.5, -130, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(45, 20, 75)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius =
+    UDim.new(0, 18)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 50)
+title.Position = UDim2.fromOffset(10, 5)
+title.BackgroundTransparency = 1
+title.Text = "🌈 RAINBOW MM2"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+local items = {
+    "🌊 Water Bow",
+    "🫧 Big Water Ball",
+    "🌈 Rainbow Carpet",
+    "💨 Hair Dryer"
+}
+
+for i, name in ipairs(items) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -30, 0, 48)
+    button.Position = UDim2.fromOffset(15, 60 + (i-1)*55)
+    button.BackgroundColor3 = Color3.fromRGB(140, 65, 220)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextScaled = true
+    button.Text = name
+    button.Parent = frame
+
+    Instance.new("UICorner", button).CornerRadius =
+        UDim.new(0, 12)
+
+    button.MouseButton1Click:Connect(function()
+        print(name .. " ausgewählt!")
+    end)
+end
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(30,30)
+close.Position = UDim2.new(1,-35,0,5)
+close.Text = "X"
+close.Parent = frame
+
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
