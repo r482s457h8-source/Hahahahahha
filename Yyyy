@@ -1,0 +1,110 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InsertService = game:GetService("InsertService")
+local Players = game:GetService("Players")
+
+-- 1. RemoteEvent für die Kommunikation erstellen
+local giveItemEvent = Instance.new("RemoteEvent")
+giveItemEvent.Name = "AllInOneItemEvent"
+giveItemEvent.Parent = ReplicatedStorage
+
+-- Liste der gewünschten Items (Name & offizielle Roblox Asset-IDs)
+local allowedItems = {
+	["Rainbow Carpet"] = 225921000,
+	["Water Bow"] = 47871653,
+	["Hair Dryer"] = 123234674
+}
+
+-- 2. Server-Logik: Item sicher ins Inventar laden
+giveItemEvent.OnServerEvent:Connect(function(player, itemName)
+	local assetId = allowedItems[itemName]
+	if not assetId then return end -- Sicherheitscheck
+
+	local success, model = pcall(function()
+		return InsertService:LoadAsset(assetId)
+	end)
+
+	if success and model then
+		for _, child in ipairs(model:GetChildren()) do
+			if child:IsA("Tool") then
+				child.Parent = player.Backpack
+			end
+		end
+		model:Destroy()
+	end
+end)
+
+-- 3. UI-Menü automatisch für jeden Spieler erstellen
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function()
+		local playerGui = player:WaitForChild("PlayerGui")
+		if playerGui:FindFirstChild("ItemMenuGui") then return end
+
+		-- ScreenGui erstellen
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "ItemMenuGui"
+		screenGui.ResetOnSpawn = false
+		screenGui.Parent = playerGui
+
+		-- Hauptfenster (Frame)
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 200, 0, 230)
+		frame.Position = UDim2.new(0, 20, 0.5, -115)
+		frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+		frame.BorderSizePixel = 0
+		frame.Parent = screenGui
+
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 10)
+		corner.Parent = frame
+
+		-- Titel
+		local title = Instance.new("TextLabel")
+		title.Size = UDim2.new(1, 0, 0, 35)
+		title.BackgroundTransparency = 1
+		title.Text = "✨ Item Menü"
+		title.TextColor3 = Color3.fromRGB(255, 255, 255)
+		title.Font = Enum.Font.GothamBold
+		title.TextSize = 16
+		title.Parent = frame
+
+		-- Hilfsfunktion für Buttons
+		local function createButton(text, order, color, callback)
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(0.85, 0, 0, 35)
+			btn.Position = UDim2.new(0.075, 0, 0, 40 + (order * 43))
+			btn.BackgroundColor3 = color
+			btn.Text = text
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			btn.Font = Enum.Font.GothamSemibold
+			btn.TextSize = 14
+			btn.Parent = frame
+
+			local btnCorner = Instance.new("UICorner")
+			btnCorner.CornerRadius = UDim.new(0, 6)
+			btnCorner.Parent = btn
+
+			btn.MouseButton1Click:Connect(callback)
+		end
+
+		-- Item-Buttons hinzufügen
+		createButton("🌈 Rainbow Carpet", 0, Color3.fromRGB(65, 130, 230), function()
+			giveItemEvent:FireServer("Rainbow Carpet")
+		end)
+
+		createButton("🏹 Water Bow", 1, Color3.fromRGB(50, 160, 180), function()
+			giveItemEvent:FireServer("Water Bow")
+		end)
+
+		createButton("💨 Hair Dryer", 2, Color3.fromRGB(200, 100, 140), function()
+			giveItemEvent:FireServer("Hair Dryer")
+		end)
+
+		-- Sit-Funktion (Setzt den Charakter überall hin)
+		createButton("🪑 Sit / Hinsetzen", 3, Color3.fromRGB(90, 180, 90), function()
+			local char = player.Character
+			if char and char:FindFirstChild("Humanoid") then
+				char.Humanoid.Sit = not char.Humanoid.Sit
+			end
+		end)
+	end)
+end)
