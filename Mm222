@@ -1,0 +1,79 @@
+
+-- KUROMI MM2 🎀
+-- Delta Executor - Lua
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "KuromiMM2"
+gui.ResetOnSpawn = false
+gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 270, 0, 300)
+frame.Position = UDim2.new(0.5, -135, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(45, 20, 65)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 16)
+corner.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -45, 0, 50)
+title.BackgroundTransparency = 1
+title.Text = "🎀 KUROMI MM2 🎀"
+title.TextColor3 = Color3.fromRGB(235, 160, 255)
+title.TextSize = 22
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 35, 0, 35)
+close.Position = UDim2.new(1, -40, 0, 8)
+close.Text = "X"
+close.TextSize = 20
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(150, 65, 190)
+close.Parent = frame
+
+local function makeButton(name, y)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 220, 0, 45)
+    btn.Position = UDim2.new(0, 25, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(125, 65, 165)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextSize = 17
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = name
+    btn.Parent = frame
+
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 12)
+    c.Parent = btn
+
+    return btn
+end
+
+local rainbow = makeButton("🌈 Rainbow Carpet", 75)
+local blow = makeButton("💨 Blow Dry", 135)
+local water = makeButton("💧 Water Bow", 195)
+
+rainbow.MouseButton1Click:Connect(function()
+    print("Rainbow Carpet")
+end)
+
+blow.MouseButton1Click:Connect(function()
+    print("Blow Dry")
+end)
+
+water.MouseButton1Click:Connect(function()
+    print("Water Bow")
+end)
+
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+end)
