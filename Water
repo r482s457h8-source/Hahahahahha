@@ -1,0 +1,24 @@
+
+elseif action == "Water" then
+    if cooldown[player] then return end
+    cooldown[player] = true
+
+    local pos = root.Position + root.CFrame.LookVector * 30
+
+    workspace.Terrain:FillBall(
+        pos,
+        18,
+        Enum.Material.Water
+    )
+
+    task.delay(30, function()
+        workspace.Terrain:FillBall(
+            pos,
+            18,
+            Enum.Material.Air
+        )
+    end)
+
+    task.delay(5, function()
+        cooldown[player] = nil
+    end)
