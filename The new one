@@ -1,0 +1,246 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Altes GUI löschen, falls das Script neu gestartet wird
+if PlayerGui:FindFirstChild("PinkToolMenu") then
+    PlayerGui.PinkToolMenu:Destroy()
+end
+
+-- ScreenGui erstellen
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PinkToolMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- Hauptfenster (Pink & Verschiebbar)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 260, 0, 190)
+MainFrame.Position = UDim2.new(0.5, -130, 0.5, -95)
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Hot Pink
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Macht das Fenster verschiebbar
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Titelleiste
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -40, 0, 35)
+TitleLabel.Position = UDim2.new(0, 10, 0, 5)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "✨ Pinkes Menü ✨"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 18
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = MainFrame
+
+-- X Button (Schließen)
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 20, 147) -- Deep Pink
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 16
+CloseButton.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Hilfsfunktion für Rosa Buttons
+local function createPinkButton(text, posY)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.85, 0, 0, 45)
+    btn.Position = UDim2.new(0.075, 0, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Helles Rosa
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(139, 0, 69) -- Dunkles Pink für gute Lesbarkeit
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    btn.Parent = MainFrame
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 10)
+    btnCorner.Parent = btn
+
+    return btn
+end
+
+-- Button 1: Fliegender Teppich
+local CarpetBtn = createPinkButton("🪄 Fliegender Teppich", 55)
+
+-- Button 2: Föhn (Wegpusten)
+local HairdryerBtn = createPinkButton("💨 Föhn (Wegpusten)", 115)
+
+---------------------------------------------------
+-- FUNKTION 1: FLIEGENDER TEPPICH
+---------------------------------------------------
+CarpetBtn.MouseButton1Click:Connect(function()
+    local Backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not Backpack then return end
+
+    -- Verhindert doppelte Tools
+    if Backpack:FindFirstChild("Fliegender Teppich") or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Fliegender Teppich")) then
+        return
+    end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "Fliegender Teppich"
+    tool.RequiresHandle = true
+
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(4, 0.3, 6)
+    handle.Color = Color3.fromRGB(255, 105, 180)
+    handle.Material = Enum.Material.Fabric
+    handle.CanCollide = false
+    handle.Parent = tool
+
+    local flying = false
+    local bv, bg, connection
+
+    tool.Equipped:Connect(function()
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        if not hrp or not hum then return end
+
+        flying = true
+        hum.PlatformStand = true
+
+        bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Velocity = Vector3.zero
+        bv.Parent = hrp
+
+        bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bg.P = 9e4
+        bg.Parent = hrp
+
+        connection = RunService.RenderStepped:Connect(function()
+            if not flying then return end
+            local cam = workspace.CurrentCamera
+            bg.CFrame = cam.CFrame
+
+            local moveDir = Vector3.zero
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+
+            bv.Velocity = moveDir * 65 -- Fluggeschwindigkeit
+        end)
+    end)
+
+    tool.Unequipped:Connect(function()
+        flying = false
+        if connection then connection:Disconnect() end
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then hum.PlatformStand = false end
+    end)
+
+    tool.Parent = Backpack
+end)
+
+---------------------------------------------------
+-- FUNKTION 2: FÖHN (ANDERE WEGPUSTEN)
+---------------------------------------------------
+HairdryerBtn.MouseButton1Click:Connect(function()
+    local Backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not Backpack then return end
+
+    if Backpack:FindFirstChild("Pinker Föhn") or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Pinker Föhn")) then
+        return
+    end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "Pinker Föhn"
+    tool.RequiresHandle = true
+
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(0.8, 0.8, 1.5)
+    handle.Color = Color3.fromRGB(255, 182, 193)
+    handle.Material = Enum.Material.SmoothPlastic
+    handle.Parent = tool
+
+    -- Wind-Partikel hinzufügen
+    local attachment = Instance.new("Attachment")
+    attachment.Position = Vector3.new(0, 0, -0.8)
+    attachment.Parent = handle
+
+    local particles = Instance.new("ParticleEmitter")
+    particles.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+    particles.Size = NumberSequence.new(0.5, 2)
+    particles.Lifetime = NumberRange.new(0.3, 0.5)
+    particles.Rate = 50
+    particles.Speed = NumberRange.new(25, 35)
+    particles.EmissionDirection = Enum.NormalId.Front
+    particles.Enabled = false
+    particles.Parent = attachment
+
+    local blowing = false
+
+    tool.Activated:Connect(function()
+        blowing = true
+        particles.Enabled = true
+
+        task.spawn(function()
+            while blowing do
+                local char = LocalPlayer.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local lookDir = hrp.CFrame.LookVector
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= LocalPlayer and plr.Character then
+                            local targetHrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                            if targetHrp then
+                                local diff = targetHrp.Position - hrp.Position
+                                local dist = diff.Magnitude
+                                -- Prüft, ob der Spieler vor dir steht (max. 25 Studs entfernt)
+                                if dist < 25 and lookDir:Dot(diff.Unit) > 0.65 then
+                                    targetHrp.AssemblyLinearVelocity = lookDir * 110 + Vector3.new(0, 45, 0)
+                                end
+                            end
+                        end
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+    end)
+
+    tool.Deactivated:Connect(function()
+        blowing = false
+        particles.Enabled = false
+    end)
+
+    tool.Unequipped:Connect(function()
+        blowing = false
+        particles.Enabled = false
+    end)
+
+    tool.Parent = Backpack
+end)
