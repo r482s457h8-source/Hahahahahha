@@ -1,0 +1,39 @@
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "MyTools"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 170)
+frame.Position = UDim2.new(0.5, -110, 0.5, -85)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+frame.Parent = gui
+
+local function makeButton(name, y, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 190, 0, 45)
+    button.Position = UDim2.new(0, 15, 0, y)
+    button.Text = name
+    button.TextSize = 18
+    button.Parent = frame
+    button.MouseButton1Click:Connect(callback)
+end
+
+local flying = false
+
+makeButton("🪄 Flying Carpet", 15, function()
+    flying = not flying
+    print("Flying:", flying)
+end)
+
+makeButton("💨 Dryer", 70, function()
+    print("Dryer aktiviert!")
+end)
+
+makeButton("❌ Schließen", 125, function()
+    gui:Destroy()
+end)
