@@ -1,0 +1,121 @@
+
+-- 🌈 SUPER POWERS MENU
+-- Roblox Studio - LocalScript
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "SuperPowersMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Hauptmenü
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 330)
+frame.Position = UDim2.new(0.5, -130, 0.5, -165)
+frame.BackgroundColor3 = Color3.fromRGB(35, 20, 65)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius =
+    UDim.new(0, 15)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 50)
+title.BackgroundTransparency = 1
+title.Text = "🌈 SUPER POWERS"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Parent = frame
+
+-- Buttons
+local function createButton(name, position, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 220, 0, 48)
+    button.Position = UDim2.new(0, 20, 0, position)
+    button.BackgroundColor3 = Color3.fromRGB(130, 65, 220)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextScaled = true
+    button.Text = name
+    button.Parent = frame
+
+    Instance.new("UICorner", button).CornerRadius =
+        UDim.new(0, 10)
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+-- Wasserbogen
+createButton("🌊 Water Bow", 65, function()
+    print("Water Bow ausgewählt!")
+end)
+
+-- Riesige Wasserkugel
+createButton("🫧 Big Water Ball", 120, function()
+    local ball = Instance.new("Part")
+    ball.Shape = Enum.PartType.Ball
+    ball.Size = Vector3.new(25,25,25)
+    ball.Position = player.Character.HumanoidRootPart.Position
+        + Vector3.new(0,15,0)
+    ball.Anchored = true
+    ball.CanCollide = true
+    ball.Material = Enum.Material.Glass
+    ball.Transparency = 0.35
+    ball.Color = Color3.fromRGB(0,180,255)
+    ball.Name = "WaterBall"
+    ball.Parent = workspace
+end)
+
+-- Regenbogen-Fliegender Teppich
+createButton("🌈 Flying Carpet", 175, function()
+    local carpet = Instance.new("Part")
+    carpet.Size = Vector3.new(10,0.5,6)
+    carpet.Position = player.Character.HumanoidRootPart.Position
+        - Vector3.new(0,3,0)
+    carpet.Anchored = false
+    carpet.CanCollide = true
+    carpet.Material = Enum.Material.Neon
+    carpet.Color = Color3.fromRGB(255,0,255)
+    carpet.Name = "RainbowCarpet"
+    carpet.Parent = workspace
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = carpet
+    weld.Part1 = player.Character.HumanoidRootPart
+    weld.Parent = carpet
+end)
+
+-- Dryer
+createButton("💨 Dryer", 230, function()
+    local root = player.Character
+        and player.Character:FindFirstChild("HumanoidRootPart")
+
+    if root then
+        local wind = Instance.new("Part")
+        wind.Shape = Enum.PartType.Ball
+        wind.Size = Vector3.new(5,5,5)
+        wind.Transparency = 0.5
+        wind.Color = Color3.fromRGB(200,255,255)
+        wind.Anchored = true
+        wind.CanCollide = false
+        wind.Position = root.Position + root.CFrame.LookVector * 8
+        wind.Parent = workspace
+
+        game:GetService("Debris"):AddItem(wind, 2)
+    end
+end)
+
+-- Schließen
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0,30,0,30)
+close.Position = UDim2.new(1,-35,0,5)
+close.Text = "X"
+close.TextScaled = true
+close.BackgroundColor3 = Color3.fromRGB(255,60,60)
+close.Parent = frame
+
+close.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+print("🌈 Super Powers Menu geladen!")
