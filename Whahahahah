@@ -1,0 +1,67 @@
+
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local SS = game:GetService("ServerStorage")
+
+local event = RS:FindFirstChild("ItemHubEvent")
+if not event then
+    event = Instance.new("RemoteEvent")
+    event.Name = "ItemHubEvent"
+    event.Parent = RS
+end
+
+local cooldown = {}
+
+local function giveTool(player, toolName)
+    local tool = SS:FindFirstChild(toolName)
+
+    if not tool or not tool:IsA("Tool") then
+        warn("Original Tool fehlt: " .. toolName)
+        return
+    end
+
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+
+    if backpack:FindFirstChild(toolName) then return end
+
+    tool:Clone().Parent = backpack
+end
+
+event.OnServerEvent:Connect(function(player, action)
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    if action == "Carpet" then
+        giveTool(player, "RainbowCarpet")
+
+    elseif action == "Dryer" then
+        giveTool(player, "BlowDryer")
+
+    elseif action == "Water" then
+        if cooldown[player] then return end
+        cooldown[player] = true
+
+        local pos = root.Position +
+            root.CFrame.LookVector * 30
+
+        workspace.Terrain:FillBall(
+            pos, 18, Enum.Material.Water
+        )
+
+        task.delay(30, function()
+            workspace.Terrain:FillBall(
+                pos, 18, Enum.Material.Air
+            )
+        end)
+
+        task.delay(5, function()
+            cooldown[player] = nil
+        end)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    cooldown[player] = nil
+end)
