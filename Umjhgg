@@ -1,0 +1,237 @@
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+
+local event = Instance.new("RemoteEvent")
+event.Name = "ItemHubEvent"
+event.Parent = ReplicatedStorage
+
+local cooldown = {}
+
+event.OnServerEvent:Connect(function(player, action)
+    local character = player.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    if action == "Water" then
+        local pos = root.Position + root.CFrame.LookVector * 30
+
+        workspace.Terrain:FillBall(
+            pos, 18, Enum.Material.Water
+        )
+
+        task.delay(30, function()
+            workspace.Terrain:FillBall(
+                pos, 18, Enum.Material.Air
+            )
+        end)
+
+    elseif action == "Dryer" then
+        if cooldown[player] then return end
+        cooldown[player] = true
+
+        for _, other in ipairs(Players:GetPlayers()) do
+            if other ~= player and other.Character then
+                local target = other.Character:FindFirstChild("HumanoidRootPart")
+
+                if target then
+                    local offset = target.Position - root.Position
+                    local distance = offset.Magnitude
+
+                    if distance < 35 and distance > 0 then
+                        local direction = offset.Unit
+                        if root.CFrame.LookVector:Dot(direction) > 0.5 then
+                            target:ApplyImpulse(
+                                (direction * 100 + Vector3.new(0,45,0))
+                                * target.AssemblyMass
+                            )
+                        end
+                    end
+                end
+            end
+        end
+
+        task.delay(2, function()
+            cooldown[player] = nil
+        end)
+    end
+end)
+
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local event = RS:WaitForChild("ItemHubEvent")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ItemHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(260,280)
+frame.Position = UDim2.new(0.5,-130,0.5,-140)
+frame.BackgroundColor3 = Color3.fromRGB(20,30,55)
+frame.Parent = gui
+Instance.new("UICorner",frame).CornerRadius = UDim.new(0,14)
+
+local function makeButton(name,text,y)
+    local b = Instance.new("TextButton")
+    b.Name = name
+    b.Size = UDim2.new(1,-30,0,42)
+    b.Position = UDim2.fromOffset(15,y)
+    b.Text = text
+    b.TextScaled = true
+    b.BackgroundColor3 = Color3.fromRGB(30,130,220)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Parent = frame
+    Instance.new("UICorner",b)
+    return b
+end
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-50,0,40)
+title.Position = UDim2.fromOffset(10,5)
+title.Text = "🌈 ITEM HUB"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+local close = makeButton("Close","X",8)
+close.Size = UDim2.fromOffset(35,30)
+close.Position = UDim2.new(1,-42,0,5)
+close.BackgroundColor3 = Color3.fromRGB(200,50,50)
+
+local carpet = makeButton("Carpet","🌈 Flying Carpet",55)
+local water = makeButton("Water","🌊 Water Bow",110)
+local dryer = makeButton("Dryer","💨 Dryer",165)
+
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(110,40)
+open.Position = UDim2.fromOffset(15,100)
+open.Text = "OPEN HUB"
+open.Visible = false
+open.Parent = gui
+
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    open.Visible = true
+end)
+
+open.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    open.Visible = false
+end)
+
+water.MouseButton1Click:Connect(function()
+    event:FireServer("Water")
+end)
+
+dryer.MouseButton1Click:Connect(function()
+    event:FireServer("Dryer")
+end)
+
+-- RAINBOW FLYING CARPET
+
+local flying = false
+local flightConnection
+local velocity
+local gyro
+local rug
+
+local colors = {
+    Color3.fromRGB(255,0,0),
+    Color3.fromRGB(255,130,0),
+    Color3.fromRGB(255,230,0),
+    Color3.fromRGB(0,220,0),
+    Color3.fromRGB(0,130,255),
+    Color3.fromRGB(100,0,255),
+    Color3.fromRGB(220,0,220)
+}
+
+local function stopFlying()
+    flying = false
+
+    if flightConnection then
+        flightConnection:Disconnect()
+        flightConnection = nil
+    end
+
+    if velocity then velocity:Destroy() end
+    if gyro then gyro:Destroy() end
+    if rug then rug:Destroy() end
+
+    carpet.Text = "🌈 Flying Carpet"
+end
+
+carpet.MouseButton1Click:Connect(function()
+    if flying then
+        stopFlying()
+        return
+    end
+
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    flying = true
+
+    rug = Instance.new("Model")
+    rug.Name = "RainbowFlyingCarpet"
+    rug.Parent = char
+
+    local base = Instance.new("Part")
+    base.Size = Vector3.new(7,0.25,4)
+    base.Position = root.Position - Vector3.new(0,3,0)
+    base.Color = Color3.fromRGB(120,50,200)
+    base.Anchored = false
+    base.CanCollide = false
+    base.Parent = rug
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = root
+    weld.Part1 = base
+    weld.Parent = base
+
+    for i,color in ipairs(colors) do
+        local stripe = Instance.new("Part")
+        stripe.Size = Vector3.new(7,0.28,4/7)
+        stripe.Color = color
+        stripe.Material = Enum.Material.SmoothPlastic
+        stripe.CanCollide = false
+        stripe.Anchored = false
+        stripe.Position = base.Position +
+            Vector3.new(0,0,(i-4)*0.57)
+        stripe.Parent = rug
+
+        local w = Instance.new("WeldConstraint")
+        w.Part0 = base
+        w.Part1 = stripe
+        w.Parent = stripe
+    end
+
+    velocity = Instance.new("BodyVelocity")
+    velocity.MaxForce = Vector3.new(1e6,1e6,1e6)
+    velocity.Parent = root
+
+    gyro = Instance.new("BodyGyro")
+    gyro.MaxTorque = Vector3.new(1e6,1e6,1e6)
+    gyro.Parent = root
+
+    flightConnection = RunService.RenderStepped:Connect(function()
+        local camera = workspace.CurrentCamera
+        local move = camera.CFrame.LookVector * 45
+
+        velocity.Velocity = move
+        gyro.CFrame = camera.CFrame
+    end)
+
+    carpet.Text = "🛑 STOP FLYING"
+end)
+
+player.CharacterAdded:Connect(function()
+    stopFlying()
+end)
