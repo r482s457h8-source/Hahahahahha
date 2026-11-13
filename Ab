@@ -1,0 +1,83 @@
+
+-- 🌈 RAINBOW MOBILE MENU
+-- Local visual demo
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RainbowMobileMenu"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
+
+local old = gui.Parent:FindFirstChild("RainbowMobileMenu")
+if old and old ~= gui then old:Destroy() end
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0,270,0,340)
+frame.Position = UDim2.new(0.5,-135,0.5,-170)
+frame.BackgroundColor3 = Color3.fromRGB(40,15,75)
+frame.Parent = gui
+
+Instance.new("UICorner",frame).CornerRadius =
+    UDim.new(0,20)
+
+local stroke = Instance.new("UIStroke",frame)
+stroke.Color = Color3.fromRGB(255,70,220)
+stroke.Thickness = 3
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-45,0,50)
+title.Position = UDim2.fromOffset(5,5)
+title.BackgroundTransparency = 1
+title.Text = "🌈 RAINBOW MENU"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(35,35)
+close.Position = UDim2.new(1,-40,0,5)
+close.Text = "X"
+close.TextScaled = true
+close.Parent = frame
+
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1,-20,0,25)
+status.Position = UDim2.fromOffset(10,305)
+status.BackgroundTransparency = 1
+status.Text = "✨ Ready!"
+status.TextColor3 = Color3.new(1,1,1)
+status.TextScaled = true
+status.Parent = frame
+
+local items = {
+    {"🌊 WATER BOW","Water Bow ausgewählt!"},
+    {"🫧 WATER BALL","Water Ball ausgewählt!"},
+    {"🌈 FLYING CARPET","Flying Carpet ausgewählt!"},
+    {"💨 HAIR DRYER","Hair Dryer ausgewählt!"}
+}
+
+for i,item in ipairs(items) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1,-30,0,52)
+    button.Position = UDim2.fromOffset(15,60+(i-1)*60)
+    button.BackgroundColor3 = Color3.fromRGB(140,60,220)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextScaled = true
+    button.Text = item[1]
+    button.Parent = frame
+
+    Instance.new("UICorner",button).CornerRadius =
+        UDim.new(0,12)
+
+    button.Activated:Connect(function()
+        status.Text = "✨ "..item[2]
+    end)
+end
+
+print("Rainbow Mobile Menu loaded!")
