@@ -1,0 +1,268 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+-- Alte GUIs entfernen
+if player.PlayerGui:FindFirstChild("RosaItemMenu") then
+    player.PlayerGui.RosaItemMenu:Destroy()
+end
+
+-- ScreenGui erstellen
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RosaItemMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Hauptfenster (Rosa Menü)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = mainFrame
+
+-- Öffnungs-Animation
+TweenService:Create(
+    mainFrame,
+    TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Size = UDim2.new(0, 270, 0, 185)}
+):Play()
+
+-- Titel
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -45, 0, 35)
+titleLabel.Position = UDim2.new(0, 12, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Rosa Roblox Tools"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 18
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+-- Schließen-Button (X)
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 16
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Echter Roblox Fliegender Teppich (ID: 225921000)
+local function giveRobloxCarpet()
+    local success, objects = pcall(function()
+        return game:GetObjects("rbxassetid://225921000")
+    end)
+
+    local tool
+    if success and objects and objects[1] then
+        tool = objects[1]
+        -- Alte blockierte Server-Skripte im Gear entfernen
+        for _, child in ipairs(tool:GetDescendants()) do
+            if child:IsA("Script") or child:IsA("LocalScript") then
+                child:Destroy()
+            end
+        end
+    else
+        -- Fallback falls das Spiel externe Assets blockiert
+        tool = Instance.new("Tool")
+        tool.Name = "Rainbow Magic Carpet"
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(4, 0.2, 6)
+        handle.Color = Color3.fromRGB(255, 105, 180)
+        handle.Parent = tool
+    end
+
+    -- Regenbogen-Schweif hinzufügen
+    local handle = tool:FindFirstChild("Handle")
+    if handle then
+        handle.CanCollide = false
+        local att0 = Instance.new("Attachment", handle)
+        att0.Position = Vector3.new(-1.5, 0, 2)
+        local att1 = Instance.new("Attachment", handle)
+        att1.Position = Vector3.new(1.5, 0, 2)
+
+        local trail = Instance.new("Trail")
+        trail.Attachment0 = att0
+        trail.Attachment1 = att1
+        trail.Lifetime = 1.2
+        trail.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 255, 127)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(138, 43, 226))
+        })
+        trail.Parent = handle
+    end
+
+    -- Funktionierende Flugsteuerung
+    local flying = false
+    local bodyVel, bodyGyro, connection
+
+    tool.Equipped:Connect(function()
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        flying = true
+        bodyVel = Instance.new("BodyVelocity")
+        bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bodyVel.Parent = root
+
+        bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+        bodyGyro.P = 1e4
+        bodyGyro.Parent = root
+
+        connection = RunService.RenderStepped:Connect(function()
+            if not flying or not root then return end
+            local cam = workspace.CurrentCamera
+            bodyGyro.CFrame = cam.CFrame
+            bodyVel.Velocity = cam.CFrame.LookVector * 60
+        end)
+    end)
+
+    tool.Unequipped:Connect(function()
+        flying = false
+        if connection then connection:Disconnect() end
+        if bodyVel then bodyVel:Destroy() end
+        if bodyGyro then bodyGyro:Destroy() end
+    end)
+
+    tool.Parent = player.Backpack
+end
+
+-- Echter Roblox Föhn / Blow Dryer (ID: 11719016)
+local function giveRobloxHairdryer()
+    local success, objects = pcall(function()
+        return game:GetObjects("rbxassetid://11719016")
+    end)
+
+    local tool
+    if success and objects and objects[1] then
+        tool = objects[1]
+        for _, child in ipairs(tool:GetDescendants()) do
+            if child:IsA("Script") or child:IsA("LocalScript") then
+                child:Destroy()
+            end
+        end
+    else
+        tool = Instance.new("Tool")
+        tool.Name = "Blow Dryer"
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(0.6, 0.8, 1.5)
+        handle.Parent = tool
+    end
+
+    local handle = tool:FindFirstChild("Handle")
+    local blowing = false
+    local blowConnection
+
+    if handle then
+        handle.CanCollide = false
+        -- Originaler Roblox Föhn-Sound (ID: 11717967)
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://11717967"
+        sound.Looped = true
+        sound.Volume = 1
+        sound.Parent = handle
+
+        -- Luft-Effekt
+        local wind = Instance.new("ParticleEmitter")
+        wind.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+        wind.Size = NumberSequence.new(0.4, 1.8)
+        wind.Lifetime = NumberRange.new(0.3, 0.5)
+        wind.Rate = 60
+        wind.Speed = NumberRange.new(20, 30)
+        wind.Enabled = false
+        wind.Parent = handle
+
+        tool.Activated:Connect(function()
+            blowing = true
+            wind.Enabled = true
+            sound:Play()
+
+            blowConnection = RunService.RenderStepped:Connect(function()
+                if not blowing then return end
+                local char = player.Character
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+                if root then
+                    -- Kontinuierlicher Rückstoß beim Gedrückthalten
+                    root.Velocity = root.CFrame.LookVector * -25 + Vector3.new(0, 8, 0)
+                end
+            end)
+        end)
+
+        tool.Deactivated:Connect(function()
+            blowing = false
+            wind.Enabled = false
+            sound:Stop()
+            if blowConnection then blowConnection:Disconnect() end
+        end)
+
+        tool.Unequipped:Connect(function()
+            blowing = false
+            wind.Enabled = false
+            sound:Stop()
+            if blowConnection then blowConnection:Disconnect() end
+        end)
+    end
+
+    tool.Parent = player.Backpack
+end
+
+-- Button 1: Echter Teppich
+local carpetBtn = Instance.new("TextButton")
+carpetBtn.Size = UDim2.new(0.85, 0, 0, 44)
+carpetBtn.Position = UDim2.new(0.075, 0, 0.30, 0)
+carpetBtn.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
+carpetBtn.Text = "Rainbow Magic Carpet"
+carpetBtn.TextColor3 = Color3.fromRGB(80, 0, 40)
+carpetBtn.Font = Enum.Font.GothamSemibold
+carpetBtn.TextSize = 14
+carpetBtn.Parent = mainFrame
+
+local btn1Corner = Instance.new("UICorner")
+btn1Corner.CornerRadius = UDim.new(0, 8)
+btn1Corner.Parent = carpetBtn
+
+carpetBtn.MouseButton1Click:Connect(giveRobloxCarpet)
+
+-- Button 2: Echter Föhn
+local dryerBtn = Instance.new("TextButton")
+dryerBtn.Size = UDim2.new(0.85, 0, 0, 44)
+dryerBtn.Position = UDim2.new(0.075, 0, 0.62, 0)
+dryerBtn.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
+dryerBtn.Text = "Roblox Blow Dryer"
+dryerBtn.TextColor3 = Color3.fromRGB(80, 0, 40)
+dryerBtn.Font = Enum.Font.GothamSemibold
+dryerBtn.TextSize = 14
+dryerBtn.Parent = mainFrame
+
+local btn2Corner = Instance.new("UICorner")
+btn2Corner.CornerRadius = UDim.new(0, 8)
+btn2Corner.Parent = dryerBtn
+
+dryerBtn.MouseButton1Click:Connect(giveRobloxHairdryer)
