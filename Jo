@@ -1,0 +1,85 @@
+
+-- 🌈 RAINBOW ITEMS MENU
+-- LocalScript
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RainbowItems"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(280, 350)
+frame.Position = UDim2.new(0.5, -140, 0.5, -175)
+frame.BackgroundColor3 = Color3.fromRGB(35, 20, 65)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius =
+    UDim.new(0, 18)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(255, 100, 230)
+stroke.Thickness = 3
+stroke.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -45, 0, 50)
+title.Position = UDim2.fromOffset(10, 5)
+title.BackgroundTransparency = 1
+title.Text = "🌈 SUPER ITEMS"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(35,35)
+close.Position = UDim2.new(1,-40,0,5)
+close.Text = "X"
+close.TextScaled = true
+close.Parent = frame
+
+close.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+local items = {
+    {"🌊 Water Bow", "WaterBow"},
+    {"🫧 Big Water Ball", "WaterBall"},
+    {"🌈 Rainbow Carpet", "RainbowCarpet"},
+    {"💨 Hair Dryer", "HairDryer"}
+}
+
+for i, item in ipairs(items) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1,-30,0,55)
+    button.Position = UDim2.fromOffset(15,60+(i-1)*65)
+    button.BackgroundColor3 = Color3.fromRGB(130,60,210)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextScaled = true
+    button.Text = item[1]
+    button.Parent = frame
+
+    Instance.new("UICorner",button).CornerRadius =
+        UDim.new(0,12)
+
+    button.MouseButton1Click:Connect(function()
+        local itemFolder = game:GetService("ReplicatedStorage")
+            :FindFirstChild("SuperItems")
+
+        if itemFolder then
+            local tool = itemFolder:FindFirstChild(item[2])
+            if tool and tool:IsA("Tool") then
+                local clone = tool:Clone()
+                clone.Parent = player.Backpack
+            else
+                warn(item[2] .. " fehlt im SuperItems-Ordner")
+            end
+        else
+            warn("SuperItems-Ordner fehlt in ReplicatedStorage")
+        end
+    end)
+end
+
+print("🌈 Rainbow Items Menu loaded!")
