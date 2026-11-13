@@ -1,0 +1,266 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- 1. GUI ERSTELLEN
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FunToolsMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Kleiner Button zum Wiederöffnen (anfangs unsichtbar)
+local openBtn = Instance.new("TextButton")
+openBtn.Name = "OpenButton"
+openBtn.Size = UDim2.new(0, 110, 0, 35)
+openBtn.Position = UDim2.new(0, 20, 0.5, -17)
+openBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+openBtn.Font = Enum.Font.GothamBold
+openBtn.TextSize = 14
+openBtn.Text = "Tools öffnen"
+openBtn.Visible = false
+openBtn.Parent = screenGui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = openBtn
+
+-- Hauptfenster (verschiebbar über Active & Draggable)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 240, 0, 270)
+mainFrame.Position = UDim2.new(0.5, -120, 0.5, -135)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = mainFrame
+
+-- Titelleiste
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -40, 0, 40)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Fun Tools Menü"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 16
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+-- X-Button zum Schließen
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+
+-- Öffnen / Schließen Logik
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	openBtn.Visible = true
+end)
+
+openBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	openBtn.Visible = false
+end)
+
+-- Container für die Tool-Buttons
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Size = UDim2.new(1, -20, 1, -50)
+buttonContainer.Position = UDim2.new(0, 10, 0, 45)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = mainFrame
+
+local uiList = Instance.new("UIListLayout")
+uiList.Padding = UDim.new(0, 8)
+uiList.Parent = buttonContainer
+
+-- Hilfsfunktion zum Erstellen von Menü-Buttons
+local function createMenuButton(text, color, callback)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 45)
+	btn.BackgroundColor3 = color
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.Parent = buttonContainer
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = btn
+
+	btn.MouseButton1Click:Connect(callback)
+end
+
+-- 2. TOOL-FUNKTIONEN
+
+local function giveWaterBow()
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack or backpack:FindFirstChild("Water Bow") then return end
+
+	local tool = Instance.new("Tool")
+	tool.Name = "Water Bow"
+	tool.RequiresHandle = false
+
+	tool.Activated:Connect(function()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		local waterBall = Instance.new("Part")
+		waterBall.Size = Vector3.new(2, 2, 2)
+		waterBall.Shape = Enum.PartType.Ball
+		waterBall.BrickColor = BrickColor.new("Bright blue")
+		waterBall.Material = Enum.Material.Glass
+		waterBall.Transparency = 0.3
+		waterBall.CanCollide = false
+		waterBall.CFrame = root.CFrame * CFrame.new(0, 1, -4)
+		waterBall.Parent = workspace
+
+		local bv = Instance.new("BodyVelocity")
+		bv.Velocity = root.CFrame.LookVector * 80
+		bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bv.Parent = waterBall
+
+		Debris:AddItem(waterBall, 3)
+	end)
+
+	tool.Parent = backpack
+end
+
+local function giveRainbowCarpet()
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack or backpack:FindFirstChild("Rainbow Carpet") then return end
+
+	local tool = Instance.new("Tool")
+	tool.Name = "Rainbow Carpet"
+	tool.RequiresHandle = false
+
+	local flying = false
+	local carpet, bv, conn
+
+	tool.Equipped:Connect(function()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		flying = true
+		carpet = Instance.new("Part")
+		carpet.Size = Vector3.new(6, 0.4, 8)
+		carpet.Anchored = false
+		carpet.CanCollide = false
+		carpet.Material = Enum.Material.Neon
+		carpet.Parent = workspace
+
+		local weld = Instance.new("WeldConstraint")
+		carpet.CFrame = root.CFrame * CFrame.new(0, -3.2, 0)
+		weld.Part0 = root
+		weld.Part1 = carpet
+		weld.Parent = carpet
+
+		bv = Instance.new("BodyVelocity")
+		bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bv.Parent = root
+
+		local hue = 0
+		conn = RunService.RenderStepped:Connect(function(dt)
+			if not flying then return end
+			hue = (hue + dt * 0.5) % 1
+			carpet.Color = Color3.fromHSV(hue, 1, 1)
+			bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 50
+		end)
+	end)
+
+	tool.Unequipped:Connect(function()
+		flying = false
+		if conn then conn:Disconnect() end
+		if bv then bv:Destroy() end
+		if carpet then carpet:Destroy() end
+	end)
+
+	tool.Parent = backpack
+end
+
+local function giveHairDryer()
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack or backpack:FindFirstChild("Hair Dryer") then return end
+
+	local tool = Instance.new("Tool")
+	tool.Name = "Hair Dryer"
+	tool.RequiresHandle = false
+
+	tool.Activated:Connect(function()
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		for _, obj in ipairs(workspace:GetDescendants()) do
+			if obj:IsA("BasePart") and not obj.Anchored and not obj:IsDescendantOf(character) then
+				local distance = (obj.Position - root.Position).Magnitude
+				if distance < 25 then
+					local direction = (obj.Position - root.Position).Unit
+					obj.AssemblyLinearVelocity = (direction + Vector3.new(0, 0.5, 0)) * 90
+				end
+			end
+		end
+	end)
+
+	tool.Parent = backpack
+end
+
+local function giveGoldBomb()
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack or backpack:FindFirstChild("Gold Bomb") then return end
+
+	local tool = Instance.new("Tool")
+	tool.Name = "Gold Bomb"
+	tool.RequiresHandle = false
+
+	tool.Activated:Connect(function()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		local bomb = Instance.new("Part")
+		bomb.Size = Vector3.new(2.5, 2.5, 2.5)
+		bomb.Shape = Enum.PartType.Ball
+		bomb.BrickColor = BrickColor.new("Gold")
+		bomb.Material = Enum.Material.Metal
+		bomb.CFrame = root.CFrame * CFrame.new(0, 1, -3)
+		bomb.AssemblyLinearVelocity = root.CFrame.LookVector * 45 + Vector3.new(0, 20, 0)
+		bomb.Parent = workspace
+
+		task.delay(2.5, function()
+			if bomb and bomb.Parent then
+				local explosion = Instance.new("Explosion")
+				explosion.Position = bomb.Position
+				explosion.BlastRadius = 15
+				explosion.Parent = workspace
+				bomb:Destroy()
+			end
+		end)
+	end)
+
+	tool.Parent = backpack
+end
+
+-- 3. BUTTONS MIT FUNKTIONEN VERKNÜPFEN
+createMenuButton("Water Bow holen", Color3.fromRGB(45, 130, 220), giveWaterBow)
+createMenuButton("Rainbow Carpet holen", Color3.fromRGB(160, 70, 210), giveRainbowCarpet)
+createMenuButton("Hair Dryer holen", Color3.fromRGB(230, 120, 40), giveHairDryer)
+createMenuButton("Gold Bomb holen", Color3.fromRGB(210, 170, 30), giveGoldBomb)
