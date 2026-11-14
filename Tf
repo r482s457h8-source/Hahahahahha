@@ -1,0 +1,39 @@
+-- Water Bow + Flying Magic Carpet + Dryer
+-- LocalScript (z.B. in StarterPlayerScripts)
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+
+-- === EINSTELLUNGEN ===
+local FLY_SPEED = 65
+local DRYER_FORCE = 120          -- wie stark Leute weggepustet werden
+local DRYER_RANGE = 25
+local WATER_BALL_SIZE = 18       -- Größe der Wasser-Kugel
+local WATER_BALL_LIFETIME = 12   -- Sekunden, bis die Kugel verschwindet
+
+local flying = false
+local bodyVelocity = nil
+local bodyGyro = nil
+
+-- ============================================
+-- FLYING MAGIC CARPET
+-- ============================================
+local function toggleFly()
+	flying = not flying
+
+	if flying then
+		bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bodyVelocity.Velocity = Vector3.zero
+		bodyVelocity.Parent = root
+
+		bodyGyro = Instance.new("BodyGyro")
+		bodyGyro.MaxTorque = Vector3.new(1e
