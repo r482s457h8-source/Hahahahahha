@@ -1,0 +1,53 @@
+
+-- DARK PEGASUS PUSH SYSTEM
+-- Place in ServerScriptService
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local event = Instance.new("RemoteEvent")
+event.Name = "DarkPegasusPush"
+event.Parent = ReplicatedStorage
+
+local cooldown = {}
+
+event.OnServerEvent:Connect(function(player)
+    if cooldown[player] then return end
+    cooldown[player] = true
+
+    local character = player.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+
+    if root then
+        for _, target in ipairs(Players:GetPlayers()) do
+            if target ~= player then
+                local targetCharacter = target.Character
+                local targetRoot = targetCharacter
+                    and targetCharacter:FindFirstChild("HumanoidRootPart")
+
+                local humanoid = targetCharacter
+                    and targetCharacter:FindFirstChildOfClass("Humanoid")
+
+                if targetRoot and humanoid and humanoid.Health > 0 then
+                    local difference = targetRoot.Position - root.Position
+
+                    if difference.Magnitude <= 15 and difference.Magnitude > 0 then
+                        local direction = difference.Unit
+
+                        targetRoot:ApplyImpulse(
+                            (direction * 65 + Vector3.new(0, 25, 0))
+                            * targetRoot.AssemblyMass
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    task.wait(2)
+    cooldown[player] = nil
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    cooldown[player] = nil
+end)
