@@ -1,0 +1,81 @@
+
+-- MY SCRIPT MENU V2
+-- LocalScript in StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "MyScriptMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(280, 270)
+frame.Position = UDim2.new(0.5,-140,0.5,-135)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Parent = gui
+
+Instance.new("UICorner",frame).CornerRadius =
+    UDim.new(0,10)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-45,0,45)
+title.BackgroundTransparency = 1
+title.Text = "MY SCRIPT"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.Parent = frame
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(35,35)
+close.Position = UDim2.new(1,-40,0,5)
+close.Text = "X"
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(150,35,35)
+close.Parent = frame
+
+close.Activated:Connect(function()
+    frame.Visible = false
+end)
+
+local open = Instance.new("TextButton")
+open.Size = UDim2.fromOffset(75,40)
+open.Position = UDim2.new(0,10,0.5,0)
+open.Text = "OPEN"
+open.TextColor3 = Color3.new(1,1,1)
+open.BackgroundColor3 = Color3.fromRGB(30,30,30)
+open.Parent = gui
+
+open.Activated:Connect(function()
+    frame.Visible = true
+end)
+
+local function addButton(name,y,callback)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1,-20,0,45)
+    b.Position = UDim2.new(0,10,0,y)
+    b.Text = name
+    b.TextColor3 = Color3.new(1,1,1)
+    b.BackgroundColor3 = Color3.fromRGB(48,48,48)
+    b.Font = Enum.Font.Gotham
+    b.TextSize = 15
+    b.Parent = frame
+    Instance.new("UICorner",b)
+    b.Activated:Connect(callback)
+end
+
+addButton("Rainbow Carpet - GET",55,function()
+    print("Rainbow Carpet selected")
+end)
+
+addButton("Hair Dryer - GET",110,function()
+    print("Hair Dryer selected")
+end)
+
+addButton("Infinite Yield",165,function()
+    print("Admin commands selected")
+end)
+
+print("MY SCRIPT V2 LOADED")
