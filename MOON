@@ -1,0 +1,78 @@
+
+-- 🐎 DARK PEGASUS MENU
+-- ONE SERVER SCRIPT
+-- Put in ServerScriptService
+
+local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
+
+local items = {
+    "Gears",
+    "Magic Carpet",
+    "Dryer",
+    "Dark Pegasus"
+}
+
+local function createMenu(player)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "DarkPegasusMenu"
+    gui.ResetOnSpawn = false
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.fromOffset(250, 330)
+    frame.Position = UDim2.new(0.5, -125, 0.5, -165)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 15, 40)
+    frame.Parent = gui
+
+    Instance.new("UICorner", frame).CornerRadius =
+        UDim.new(0, 15)
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.BackgroundTransparency = 1
+    title.Text = "🐎 DARK PEGASUS"
+    title.TextColor3 = Color3.fromRGB(190, 120, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = frame
+
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(1, -20, 0, 30)
+    status.Position = UDim2.fromOffset(10, 285)
+    status.BackgroundTransparency = 1
+    status.Text = "Choose your item!"
+    status.TextColor3 = Color3.new(1, 1, 1)
+    status.TextScaled = true
+    status.Parent = frame
+
+    for i, itemName in ipairs(items) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -30, 0, 45)
+        button.Position = UDim2.fromOffset(15, 55 + (i-1)*55)
+        button.BackgroundColor3 = Color3.fromRGB(80, 40, 120)
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.Text = itemName
+        button.TextScaled = true
+        button.Font = Enum.Font.GothamBold
+        button.Parent = frame
+
+        Instance.new("UICorner", button).CornerRadius =
+            UDim.new(0, 10)
+
+        button.Activated:Connect(function()
+            local tool = ServerStorage:FindFirstChild(itemName)
+
+            if tool and tool:IsA("Tool") then
+                local clone = tool:Clone()
+                clone.Parent = player:WaitForChild("Backpack")
+                status.Text = itemName .. " added!"
+            else
+                status.Text = itemName .. " missing!"
+            end
+        end)
+    end
+
+    gui.Parent = player:WaitForChild("PlayerGui")
+end
+
+Players.PlayerAdded:Connect(createMenu)
