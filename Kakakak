@@ -1,0 +1,98 @@
+
+-- 🐎 DARK PEGASUS MENU
+-- ROBLOX LOCAL SCRIPT
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "DarkPegasusMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(250, 340)
+frame.Position = UDim2.new(0.5, -125, 0.5, -170)
+frame.BackgroundColor3 = Color3.fromRGB(24, 15, 38)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius =
+    UDim.new(0, 14)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "🐎 DARK PEGASUS"
+title.TextColor3 = Color3.fromRGB(190, 130, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 25)
+status.Position = UDim2.fromOffset(10, 305)
+status.BackgroundTransparency = 1
+status.Text = "Choose your item!"
+status.TextColor3 = Color3.new(1, 1, 1)
+status.TextScaled = true
+status.Parent = frame
+
+local function giveItem(name)
+    local tool = ReplicatedStorage:FindFirstChild(name)
+
+    if not tool or not tool:IsA("Tool") then
+        status.Text = name .. " not found!"
+        return
+    end
+
+    if backpack:FindFirstChild(name) then
+        status.Text = "Already have " .. name
+        return
+    end
+
+    local clone = tool:Clone()
+    clone.Parent = backpack
+    status.Text = name .. " added!"
+end
+
+local function makeButton(name, y, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -30, 0, 43)
+    button.Position = UDim2.fromOffset(15, y)
+    button.BackgroundColor3 = Color3.fromRGB(75, 40, 110)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Text = name
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamBold
+    button.Parent = frame
+
+    Instance.new("UICorner", button).CornerRadius =
+        UDim.new(0, 9)
+
+    button.Activated:Connect(callback)
+end
+
+makeButton("⚙️ Gears", 55, function()
+    giveItem("Gears")
+end)
+
+makeButton("🪄 Magic Carpet", 105, function()
+    giveItem("Magic Carpet")
+end)
+
+makeButton("🌀 Dryer", 155, function()
+    giveItem("Dryer")
+end)
+
+makeButton("✋ Push Players", 205, function()
+    status.Text = "Push needs server support!"
+end)
+
+makeButton("🐎 Dark Pegasus", 255, function()
+    giveItem("Dark Pegasus")
+end)
