@@ -1,0 +1,40 @@
+
+local function createGear()
+    local tool = Instance.new("Tool")
+    tool.Name = "Gears"
+    tool.RequiresHandle = true
+
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(170, 100, 255)
+    handle.Parent = tool
+
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.Cylinder
+    mesh.Parent = handle
+
+    return tool
+end
+
+local function giveItem(name)
+    local tool
+
+    if name == "Gears" then
+        tool = createGear()
+    else
+        tool = game:GetService("ReplicatedStorage"):FindFirstChild(name)
+        if tool then
+            tool = tool:Clone()
+        end
+    end
+
+    if not tool then
+        status.Text = name .. " not found!"
+        return
+    end
+
+    tool.Parent = player:WaitForChild("Backpack")
+    status.Text = name .. " added to inventory!"
+end
