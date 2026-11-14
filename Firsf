@@ -1,0 +1,89 @@
+
+-- DARK PEGASUS MENU
+-- Put inside StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "DarkPegasusMenu"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 330)
+frame.Position = UDim2.new(0.5, -120, 0.5, -165)
+frame.BackgroundColor3 = Color3.fromRGB(24, 15, 38)
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "🐎 DARK PEGASUS"
+title.TextColor3 = Color3.fromRGB(190, 130, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local function makeButton(name, position, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 210, 0, 42)
+    button.Position = UDim2.new(0, 15, 0, position)
+    button.BackgroundColor3 = Color3.fromRGB(65, 35, 95)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Text = name
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamBold
+    button.Parent = frame
+
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 9)
+    c.Parent = button
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+local function equipTool(toolName)
+    local backpack = player:FindFirstChild("Backpack")
+    local character = player.Character
+
+    if not backpack then return end
+
+    local tool = backpack:FindFirstChild(toolName)
+
+    if tool and character then
+        tool.Parent = character
+    else
+        warn(toolName .. " not found in Backpack!")
+    end
+end
+
+makeButton("⚙️ Gears", 55, function()
+    local backpack = player.Backpack
+    for _, tool in ipairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            tool.Parent = player.Character
+        end
+    end
+end)
+
+makeButton("🪄 Magic Carpet", 105, function()
+    equipTool("Magic Carpet")
+end)
+
+makeButton("🌀 Dryer", 155, function()
+    equipTool("Dryer")
+end)
+
+makeButton("✋ Push Players", 205, function()
+    print("Push ability selected!")
+    -- Add your server-authorized push ability here.
+end)
+
+makeButton("🐎 Dark Pegasus", 255, function()
+    equipTool("Dark Pegasus")
+end)
